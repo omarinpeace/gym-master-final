@@ -24,6 +24,13 @@ async function callGateway(body: Record<string, any>) {
   const isOpenRouter = key.startsWith("sk-or");
   const isGroq = key.startsWith("gsk_");
 
+  let url = GATEWAY;
+  if (isGeminiDirect) {
+    url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${key}`;
+  } else if (isGroq) {
+    url = "https://api.groq.com/openai/v1/chat/completions";
+  }
+
   if (isGeminiDirect) {
     // Transform OpenAI-like body to Gemini format
     const contents = body.messages.map((m: any) => ({
@@ -41,24 +48,21 @@ async function callGateway(body: Record<string, any>) {
     const systemInstruction = body.messages.find((m: any) => m.role === "system")?.content;
     const finalContents = contents.filter((c: any) => c.role !== "system");
 
-    const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${key}`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          contents: finalContents,
-          system_instruction: systemInstruction
-            ? { parts: [{ text: systemInstruction }] }
-            : undefined,
-          generationConfig: {
-            response_mime_type: body.messages[0].content.includes("JSON")
-              ? "application/json"
-              : "text/plain",
-          },
-        }),
-      },
-    );
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        contents: finalContents,
+        system_instruction: systemInstruction
+          ? { parts: [{ text: systemInstruction }] }
+          : undefined,
+        generationConfig: {
+          response_mime_type: body.messages[0].content.includes("JSON")
+            ? "application/json"
+            : "text/plain",
+        },
+      }),
+    });
 
     if (!res.ok) throw new Error(`Gemini API error: ${await res.text()}`);
     const data = await res.json();
@@ -73,16 +77,13 @@ async function callGateway(body: Record<string, any>) {
     };
   }
 
-  let endpoint = GATEWAY;
-  if (isOpenRouter) endpoint = "https://openrouter.ai/api/v1/chat/completions";
-  if (isGroq) endpoint = "https://api.groq.com/openai/v1/chat/completions";
-  
-  const res = await fetch(endpoint, {
+  const res = await fetch(url, {
     method: "POST",
     headers: {
-      Authorization: `Bearer ${key}`,
       "Content-Type": "application/json",
-      ...(isOpenRouter ? { "HTTP-Referer": "http://localhost:8080", "X-Title": "Gym Master" } : {})
+      Authorization: isGeminiDirect ? "" : `Bearer ${key}`,
+      "HTTP-Referer": "https://lovable.dev",
+      "X-Title": "Gym Master",
     },
     body: JSON.stringify({ 
       model: isGroq ? "llama-3.3-70b-versatile" : (isOpenRouter ? MODEL : MODEL), 
