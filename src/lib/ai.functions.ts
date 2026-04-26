@@ -5,8 +5,16 @@ const GATEWAY = "https://openrouter.ai/api/v1/chat/completions";
 const MODEL = "google/gemini-3.1-pro-preview";
 
 function getKey() {
-  const key = process.env.GROQ_API_KEY || import.meta.env.VITE_GROQ_API_KEY || process.env.OPENROUTER_API_KEY || import.meta.env.VITE_OPENROUTER_API_KEY || process.env.GEMINI_API_KEY || import.meta.env.VITE_GEMINI_API_KEY || process.env.LOVABLE_API_KEY;
-  if (!key) throw new Error("API Key missing (Need GROQ, OPENROUTER, or GEMINI key)");
+  const gKey = process.env.GROQ_API_KEY || import.meta.env.VITE_GROQ_API_KEY;
+  const oKey = process.env.OPENROUTER_API_KEY || import.meta.env.VITE_OPENROUTER_API_KEY;
+  const geKey = process.env.GEMINI_API_KEY || import.meta.env.VITE_GEMINI_API_KEY;
+  
+  const key = gKey || oKey || geKey || process.env.LOVABLE_API_KEY;
+  
+  if (!key) {
+    console.error("DEBUG: Environment keys found:", { hasGroq: !!gKey, hasOpenRouter: !!oKey, hasGemini: !!geKey });
+    throw new Error("AI API Key missing on server. Please check your Cloudflare Environment Variables.");
+  }
   return key;
 }
 
