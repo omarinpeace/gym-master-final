@@ -79,7 +79,7 @@ async function callGateway(body: Record<string, any>) {
     body: JSON.stringify({ 
       model: isGroq ? "llama-3.3-70b-versatile" : (isOpenRouter ? MODEL : MODEL), 
       ...body,
-      response_format: body.messages.some(m => m.content.includes("JSON")) 
+      response_format: body.messages.some((m: any) => m.content.includes("JSON")) 
         ? { type: "json_object" } 
         : undefined
     }),
