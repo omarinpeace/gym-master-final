@@ -5,11 +5,11 @@ const GATEWAY = "https://openrouter.ai/api/v1/chat/completions";
 const MODEL = "google/gemini-3.1-pro-preview";
 
 function getKey() {
-  const gKey = process.env.GROQ_API_KEY || import.meta.env.VITE_GROQ_API_KEY;
-  const oKey = process.env.OPENROUTER_API_KEY || import.meta.env.VITE_OPENROUTER_API_KEY;
-  const geKey = process.env.GEMINI_API_KEY || import.meta.env.VITE_GEMINI_API_KEY;
+  const gKey = process.env.GROQ_API_KEY || (globalThis as any).GROQ_API_KEY || import.meta.env.VITE_GROQ_API_KEY;
+  const oKey = process.env.OPENROUTER_API_KEY || (globalThis as any).OPENROUTER_API_KEY || import.meta.env.VITE_OPENROUTER_API_KEY;
+  const geKey = process.env.GEMINI_API_KEY || (globalThis as any).GEMINI_API_KEY || import.meta.env.VITE_GEMINI_API_KEY;
   
-  const key = gKey || oKey || geKey || process.env.LOVABLE_API_KEY;
+  const key = gKey || oKey || geKey || process.env.LOVABLE_API_KEY || (globalThis as any).LOVABLE_API_KEY;
   
   if (!key) {
     console.error("DEBUG: Environment keys found:", { hasGroq: !!gKey, hasOpenRouter: !!oKey, hasGemini: !!geKey });
